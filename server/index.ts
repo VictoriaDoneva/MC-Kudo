@@ -1,46 +1,34 @@
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import http from 'http';
 import cors from 'cors';
+import { Server } from 'socket.io';
 
 const app = express();
+const server = http.createServer(app);
+
+// ✅ Allow all origins for now
 app.use(cors());
 
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+// ✅ Create Socket.IO server
+const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: '*', // Or restrict to your Netlify domain later
     methods: ['GET', 'POST']
   }
 });
 
-let wishes: any[] = [];
-
+// ✅ Handle connections
 io.on('connection', (socket) => {
-  console.log('User connected');
-
-  socket.emit('wishes-updated', wishes);
-
-  socket.on('add-wish', (wish) => {
-    const newWish = {
-      ...wish,
-      id: Date.now().toString(),
-      timestamp: Date.now(),
-    };
-    wishes.push(newWish);
-    io.emit('wishes-updated', wishes);
-  });
-
-  socket.on('add-reaction', (data) => {
-    io.emit('reactions-updated', data);
-  });
+  console.log('✅ New client connected');
 
   socket.on('disconnect', () => {
-    console.log('User disconnected');
+    console.log('❌ Client disconnected');
   });
+
+  // Optional: handle wish events here
 });
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
