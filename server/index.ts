@@ -6,29 +6,36 @@ import { Server } from 'socket.io';
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Allow all origins for now
+// ✅ Allow CORS (required for Netlify / frontend)
 app.use(cors());
+
+// ✅ Simple health check (VERY IMPORTANT)
+app.get('/', (_req, res) => {
+  res.send('✅ Socket.IO backend is running');
+});
 
 // ✅ Create Socket.IO server
 const io = new Server(server, {
   cors: {
-    origin: '*', // Or restrict to your Netlify domain later
+    origin: '*', // you can restrict later
     methods: ['GET', 'POST']
   }
 });
 
-// ✅ Handle connections
+// ✅ Handle socket connections
 io.on('connection', (socket) => {
-  console.log('✅ New client connected');
+  console.log('✅ New client connected:', socket.id);
 
   socket.on('disconnect', () => {
-    console.log('❌ Client disconnected');
+    console.log('❌ Client disconnected:', socket.id);
   });
 
-  // Optional: handle wish events here
+  // (Later you can add add-wish, update-wish, etc.)
 });
 
+// ✅ IMPORTANT: Render provides the PORT
 const PORT = process.env.PORT || 3001;
+
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
